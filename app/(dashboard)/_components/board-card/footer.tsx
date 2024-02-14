@@ -19,6 +19,7 @@ const Footer = ({
   onClick,
   disabled,
 }: FooterProps) => {
+  
   const handleClick = (
     event: React.MouseEvent<HTMLButtonElement, MouseEvent>
   ) => {

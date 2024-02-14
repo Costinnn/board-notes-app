@@ -1,11 +1,11 @@
 import React from "react";
 import { v } from "convex/values";
 import { query } from "./_generated/server";
+import { favorite } from "./board";
 
 export const get = query({
   args: {
     orgId: v.string(),
-    
   },
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity();
@@ -20,6 +20,18 @@ export const get = query({
       .order("desc")
       .collect();
 
-    return boards;
+    const boardsWithFavoriteRelation = boards.map(async (board) => {
+      return ctx.db
+        .query("userFavorites")
+        .withIndex("by_user_board", (q) =>
+          q.eq("userId", identity.subject).eq("boardId", board._id)
+        )
+        .unique()
+        .then((favorite) => {
+          return { ...board, isFavorite: !!favorite };
+        });
+    });
+    const boardsWithFavoriteBoolean = Promise.all(boardsWithFavoriteRelation);
+    return boardsWithFavoriteBoolean;
   },
 });
